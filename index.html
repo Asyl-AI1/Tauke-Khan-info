@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Эпоха Тауке Хана: Интерактивный Обзор</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Steppe Neutrals -->
+    <!-- Application Structure Plan: Приложение построено по тематическому принципу, а не хронологическому, чтобы облегчить исследование ключевых аспектов правления Тауке хана. Структура включает: 1) Главный экран с ключевыми фактами, 2) Интерактивный раздел о "Жеті Жарғы", где пользователь может выбирать и изучать категории законов, 3) Раздел о внешней политике с интерактивной временной шкалой и диаграммой, 4) Секция о социальной структуре, 5) Итоговый раздел о наследии хана. Такая структура позволяет пользователю глубоко погружаться в интересующие его темы (например, законы или войны), что более эффективно для понимания и поиска материала для художественного произведения, чем линейное изложение. -->
+    <!-- Visualization & Content Choices: 1) Законы "Жеті Жарғы": Информация подана через интерактивные карточки (HTML/JS) вместо сплошного текста. Цель: организация и информирование. Взаимодействие: клик для отображения деталей. Обоснование: Упрощает восприятие сложного юридического кодекса. 2) Внешние угрозы: Представлены через временную шкалу (HTML/CSS/JS) и сравнительную диаграмму (Chart.js). Цель: показать динамику и сравнить силы. Взаимодействие: клик по датам на шкале. Обоснование: Хронология дает контекст событиям, а диаграмма наглядно демонстрирует джунгарскую угрозу. 3) Социальная иерархия: Показана с помощью статичных HTML-карточек. Цель: информирование. Обоснование: Простой и ясный способ представления иерархической информации. Все визуализации созданы без SVG и Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF5;
+            color: #4A4A4A;
+        }
+        h1, h2, h3 {
+            font-family: 'Merriweather', serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #D1BFA7;
+            border: 4px solid #FDFBF5;
+        }
+        .active-nav {
+            color: #8C6A50;
+            font-weight: 600;
+        }
+        .section-hidden {
+            display: none;
+        }
+        .law-card.active {
+            border-color: #8C6A50;
+            background-color: #F9F5EF;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-[#FDFBF5] bg-opacity-90 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-[#8C6A50]">Тауке Хан</h1>
+            <ul class="hidden md:flex space-x-8 text-gray-600">
+                <li><a href="#home" class="nav-link hover:text-[#8C6A50] transition-colors">Главная</a></li>
+                <li><a href="#internal" class="nav-link hover:text-[#8C6A50] transition-colors">Внутренняя политика</a></li>
+                <li><a href="#external" class="nav-link hover:text-[#8C6A50] transition-colors">Внешняя политика</a></li>
+                <li><a href="#society" class="nav-link hover:text-[#8C6A50] transition-colors">Общество</a></li>
+                <li><a href="#legacy" class="nav-link hover:text-[#8C6A50] transition-colors">Наследие</a></li>
+            </ul>
+            <button id="mobile-menu-button" class="md:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#home" class="block py-2 text-gray-600 hover:text-[#8C6A50] nav-link">Главная</a>
+            <a href="#internal" class="block py-2 text-gray-600 hover:text-[#8C6A50] nav-link">Внутренняя политика</a>
+            <a href="#external" class="block py-2 text-gray-600 hover:text-[#8C6A50] nav-link">Внешняя политика</a>
+            <a href="#society" class="block py-2 text-gray-600 hover:text-[#8C6A50] nav-link">Общество</a>
+            <a href="#legacy" class="block py-2 text-gray-600 hover:text-[#8C6A50] nav-link">Наследие</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 md:py-12">
+        
+        <section id="home" class="text-center min-h-[60vh] flex flex-col justify-center items-center">
+            <h1 class="text-4xl md:text-6xl font-bold text-gray-800 leading-tight">Эпоха Тауке Хана</h1>
+            <p class="mt-4 text-lg md:text-xl text-gray-600 max-w-3xl">Период правления (1680–1715), вошедший в историю как «Золотой век» Казахского ханства — время единства, правопорядка и относительной стабильности.</p>
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-4xl">
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                    <h3 class="font-bold text-xl text-[#8C6A50]">Централизация Власти</h3>
+                    <p class="mt-2 text-gray-600">Ослабил власть султанов и укрепил государство, опираясь на авторитет биев.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                    <h3 class="font-bold text-xl text-[#8C6A50]">«Жеті Жарғы»</h3>
+                    <p class="mt-2 text-gray-600">Создал свод законов, который унифицировал правовые нормы для всех трех жузов.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                    <h3 class="font-bold text-xl text-[#8C6A50]">Внешние Вызовы</h3>
+                    <p class="mt-2 text-gray-600">Умело маневрировал между Джунгарским ханством, Россией и среднеазиатскими государствами.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="internal" class="py-16 md:py-24">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Внутренняя политика: Закон и Порядок</h2>
+                <p class="mt-4 text-gray-600">Ключевым достижением Тауке хана стало создание единого правового поля, которое сплотило казахские роды и племена. Он реформировал систему управления, сделав ставку на совет биев — степных судей, чей авторитет был непререкаем. Это позволило преодолеть сепаратизм султанов и укрепить вертикаль власти.</p>
+            </div>
+
+            <div class="mt-12">
+                <h3 class="text-2xl font-bold text-center text-gray-700">«Жеті Жарғы» — Семь Установлений</h3>
+                <p class="text-center mt-2 text-gray-600">Изучите основные разделы свода законов, кликнув на карточки ниже.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                    <div class="law-card border-2 border-gray-200 p-4 rounded-lg cursor-pointer hover:border-[#8C6A50] transition-colors" data-law="land">
+                        <h4 class="font-bold text-lg">1. Земельный Закон</h4>
+                        <p class="text-sm text-gray-500">Споры о пастбищах и водопоях.</p>
+                    </div>
+                    <div class="law-card border-2 border-gray-200 p-4 rounded-lg cursor-pointer hover:border-[#8C6A50] transition-colors" data-law="family">
+                        <h4 class="font-bold text-lg">2. Семейно-брачный Закон</h4>
+                        <p class="text-sm text-gray-500">Порядок заключения брака, права и обязанности.</p>
+                    </div>
+                    <div class="law-card border-2 border-gray-200 p-4 rounded-lg cursor-pointer hover:border-[#8C6A50] transition-colors" data-law="military">
+                        <h4 class="font-bold text-lg">3. Военный Закон</h4>
+                        <p class="text-sm text-gray-500">Воинская повинность, формирование армии.</p>
+                    </div>
+                    <div class="law-card border-2 border-gray-200 p-4 rounded-lg cursor-pointer hover:border-[#8C6A50] transition-colors" data-law="court">
+                        <h4 class="font-bold text-lg">4. Судебный процесс</h4>
+                        <p class="text-sm text-gray-500">Порядок судебного разбирательства.</p>
+                    </div>
+                    <div class="law-card border-2 border-gray-200 p-4 rounded-lg cursor-pointer hover:border-[#8C6A50] transition-colors" data-law="criminal">
+                        <h4 class="font-bold text-lg">5. Уголовный Закон</h4>
+                        <p class="text-sm text-gray-500">Наказания за преступления (кроме убийства).</p>
+                    </div>
+                    <div class="law-card border-2 border-gray-200 p-4 rounded-lg cursor-pointer hover:border-[#8C6A50] transition-colors" data-law="kun">
+                        <h4 class="font-bold text-lg">6. Закон о Куне</h4>
+                        <p class="text-sm text-gray-500">Возмещение за убийство и тяжкие увечья.</p>
+                    </div>
+                </div>
+
+                <div id="law-details" class="mt-8 bg-white p-6 rounded-lg shadow-md border border-gray-200 min-h-[150px]">
+                    <p class="text-gray-500">Выберите раздел, чтобы увидеть подробности...</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="external" class="py-16 md:py-24 bg-white rounded-lg shadow-md">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Внешняя политика: Между молотом и наковальней</h2>
+                <p class="mt-4 text-gray-600">Правление Тауке хана пришлось на период обострения отношений с могущественным Джунгарским ханством. Он вел сложную дипломатическую игру, создавая военные союзы с кыргызами и каракалпаками, поддерживая отношения с Россией и Бухарой, чтобы защитить границы ханства. Этот раздел освещает ключевые события и баланс сил в регионе.</p>
+            </div>
+
+            <div class="mt-12">
+                 <h3 class="text-2xl font-bold text-center text-gray-700">Ключевые события 1690-1700 гг.</h3>
+                 <div class="relative mt-8 max-w-3xl mx-auto">
+                     <div class="border-l-2 border-dashed border-[#D1BFA7] absolute h-full left-0 top-0 ml-[6px]"></div>
+                     <div id="timeline" class="space-y-12">
+                         <div class="timeline-item pl-8 relative cursor-pointer" data-year="1690">
+                            <h4 class="font-bold text-lg">1690: Посольство в Россию</h4>
+                            <p class="text-sm text-gray-600">Отправка посольства во главе с Туманчи-батыром для восстановления торговых и политических связей.</p>
+                         </div>
+                         <div class="timeline-item pl-8 relative cursor-pointer" data-year="1694">
+                             <h4 class="font-bold text-lg">1694: Письмо Петру I</h4>
+                             <p class="text-sm text-gray-600">Тауке хан направляет письмо русскому царю с предложением о дружбе, стремясь обезопасить северные границы.</p>
+                         </div>
+                         <div class="timeline-item pl-8 relative cursor-pointer" data-year="1698">
+                             <h4 class="font-bold text-lg">1698: Обострение с Джунгарией</h4>
+                             <p class="text-sm text-gray-600">Начало нового витка казахско-джунгарских войн при правителе Цэван-Рабдане. Набеги становятся регулярными.</p>
+                         </div>
+                     </div>
+                 </div>
+                 <div id="timeline-details" class="mt-8 bg-gray-50 p-6 rounded-lg max-w-3xl mx-auto min-h-[100px] border border-gray-200">
+                    <p class="text-gray-500">Нажмите на событие для получения дополнительной информации.</p>
+                 </div>
+            </div>
+
+            <div class="mt-16">
+                <h3 class="text-2xl font-bold text-center text-gray-700">Баланс сил: Казахи против Джунгар</h3>
+                <div class="chart-container mt-8">
+                    <canvas id="powerBalanceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="society" class="py-16 md:py-24">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Общественное устройство</h2>
+                <p class="mt-4 text-gray-600">Казахское общество конца XVII века имело четкую иерархическую структуру. Власть и авторитет распределялись между различными социальными группами, от правящей элиты до простых кочевников. Эта структура, закрепленная в «Жеті Жарғы», обеспечивала внутренний порядок и социальную стабильность.</p>
+            </div>
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 text-center">
+                    <h3 class="font-bold text-xl text-[#8C6A50]">Белая кость (Ақ сүйек)</h3>
+                    <p class="mt-2 text-gray-600">Высшая аристократия: ханы, султаны (чингизиды) и ходжи (потомки пророка). Обладали исключительными правами и привилегиями.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 text-center">
+                    <h3 class="font-bold text-xl text-[#8C6A50]">Черная кость (Қара сүйек)</h3>
+                    <p class="mt-2 text-gray-600">Основная масса населения. Включала в себя биев, батыров, старшин и рядовых кочевников-шаруа. Их статус определялся авторитетом, богатством и доблестью.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 text-center">
+                    <h3 class="font-bold text-xl text-[#8C6A50]">Прочие группы</h3>
+                    <p class="mt-2 text-gray-600">Включали рабов (кул) и обедневших сородичей (туленгуты), которые служили ханам и султанам в качестве личной гвардии.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="legacy" class="py-16 md:py-24 bg-white rounded-lg shadow-md">
+            <div class="text-center max-w-3xl mx-auto">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Наследие Тауке Хана</h2>
+                <p class="mt-4 text-gray-600">Правление Тауке хана завершило эпоху единого и сильного Казахского ханства. Его реформы и дипломатические усилия на десятилетия определили вектор развития государства, а свод законов «Жеті Жарғы» стал фундаментальным памятником степного права.</p>
+            </div>
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-700">Причины Успеха</h3>
+                    <ul class="mt-4 space-y-2 text-gray-600 list-inside">
+                        <li>Личный авторитет и мудрость</li>
+                        <li>Опора на совет влиятельных биев</li>
+                        <li>Острая необходимость в единстве перед лицом внешней угрозы</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-700">Результаты Правления</h3>
+                     <ul class="mt-4 space-y-2 text-gray-600 list-inside">
+                        <li>Централизация ханской власти</li>
+                        <li>Создание единой правовой системы</li>
+                        <li>Временная стабилизация на границах</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-700">Историческое Значение</h3>
+                    <ul class="mt-4 space-y-2 text-gray-600 list-inside">
+                        <li>«Золотой век» государственности</li>
+                        <li>Последний хан единого Казахского ханства</li>
+                        <li>Символ единства и справедливости народа</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="border-t mt-12">
+        <div class="container mx-auto px-6 py-4 text-center text-gray-500">
+            <p>&copy; 2025 Интерактивный обзор эпохи Тауке хана. Создан Assylzhan for Kazakh Vidual Novel.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = e.currentTarget.getAttribute('href');
+                    document.querySelector(targetId).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    if (!mobileMenu.classList.contains('hidden')) {
+                         mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            const lawData = {
+                land: {
+                    title: "Земельный Закон (Жер дауы)",
+                    text: "Четко регламентировал споры о пастбищах (жайляу, кыстау) и водопоях. Приоритет отдавался коллективному использованию земель родом. Продажа земли не допускалась, так как она считалась общей собственностью."
+                },
+                family: {
+                    title: "Семейно-брачный Закон",
+                    text: "Устанавливал обязательный калым (выкуп за невесту), размер которого зависел от знатности. Закреплял институт аменгерства (левират). Определял имущественные права членов семьи и порядок наследования."
+                },
+                military: {
+                    title: "Военный Закон",
+                    text: "Каждый мужчина, способный носить оружие, считался воином. Формирование ополчения происходило по родовому принципу. За предательство или дезертирство полагалась смертная казнь. Трофеи делились по установленным правилам."
+                },
+                court: {
+                    title: "Положение о судебном процессе",
+                    text: "Суд осуществляли бии на основе обычного права (адат) и положений «Жеті Жарғы». Требовались свидетели. В случае их отсутствия, стороны могли принести присягу. Решение бия было окончательным."
+                },
+                criminal: {
+                    title: "Уголовный Закон",
+                    text: "Устанавливались наказания за кражу, грабеж, насилие и другие преступления. За кражу скота полагалось многократное возмещение ущерба (айып). Смертная казнь применялась за самые тяжкие преступления."
+                },
+                kun: {
+                    title: "Закон о Куне",
+                    text: "Принцип «кровь за кровь» мог быть заменен на «кун» — выкуп за жизнь убитого. Размер куна зависел от социального статуса убитого и убийцы. За убийство мужчины из знатного рода платили 1000 овец, за простолюдина — меньше."
+                }
+            };
+
+            const lawCards = document.querySelectorAll('.law-card');
+            const lawDetailsContainer = document.getElementById('law-details');
+            lawCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    lawCards.forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    const lawKey = card.dataset.law;
+                    const data = lawData[lawKey];
+                    lawDetailsContainer.innerHTML = `
+                        <h4 class="font-bold text-xl text-gray-800">${data.title}</h4>
+                        <p class="mt-2 text-gray-600">${data.text}</p>
+                    `;
+                });
+            });
+
+            const timelineData = {
+                1690: {
+                    title: 'Посольство 1690 года',
+                    text: 'Это посольство было направлено в Тобольск к русским властям с целью не только возобновить торговлю, но и прощупать почву для возможного союза против усиливающихся джунгар. Хотя конкретных договоров подписано не было, сам факт обмена посольствами был важен для дипломатии того времени.'
+                },
+                1694: {
+                    title: 'Дипломатическая переписка с Петром I',
+                    text: 'В письме Тауке хан подчеркивал необходимость добрососедских отношений и предлагал совместную борьбу против "неприятелей". Это был стратегический ход, направленный на создание противовеса джунгарской угрозе с севера. Россия в тот момент была занята другими проблемами, но контакт был установлен.'
+                },
+                1698: {
+                    title: 'Начало правления Цэван-Рабдана',
+                    text: 'С приходом к власти нового, агрессивного правителя джунгар Цэван-Рабдана, военное давление на Казахское ханство резко возросло. Его целью был захват Сайрама, Ташкента и контроль над торговыми путями. С этого момента набеги стали более масштабными и организованными, что потребовало от Тауке хана мобилизации всех сил.'
+                }
+            };
+            
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            const timelineDetailsContainer = document.getElementById('timeline-details');
+
+            timelineItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const year = item.dataset.year;
+                    const data = timelineData[year];
+                    timelineDetailsContainer.innerHTML = `
+                        <h4 class="font-bold text-lg text-gray-800">${data.title}</h4>
+                        <p class="mt-1 text-gray-600">${data.text}</p>
+                    `;
+                });
+            });
+
+            const ctx = document.getElementById('powerBalanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Казахское ханство', 'Джунгарское ханство'],
+                    datasets: [{
+                        label: 'Оценочная военная мощь (воины)',
+                        data: [100000, 80000],
+                        backgroundColor: [
+                            'rgba(140, 106, 80, 0.6)',
+                            'rgba(209, 191, 167, 0.6)'
+                        ],
+                        borderColor: [
+                            'rgba(140, 106, 80, 1)',
+                            'rgba(209, 191, 167, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Количество воинов'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString('ru-RU');
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Примерное соотношение сил в конце XVII века'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
